@@ -57,6 +57,42 @@ def initialize_database(db_path=DB_PATH):
             )
         """)
 
+
+        # Return transaction records
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS return_transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_sale_id INTEGER NOT NULL,
+                refund_cents INTEGER NOT NULL
+                    CHECK(refund_cents > 0),
+                created_at TEXT NOT NULL
+                    DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (original_sale_id)
+                    REFERENCES sales(id)
+            )
+        """)
+
+        # Items included in each return
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS return_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                return_id INTEGER NOT NULL,
+                sale_item_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL
+                    CHECK(quantity > 0),
+                unit_price_cents INTEGER NOT NULL,
+                subtotal_cents INTEGER NOT NULL,
+                FOREIGN KEY (return_id)
+                    REFERENCES return_transactions(id),
+                FOREIGN KEY (sale_item_id)
+                    REFERENCES sale_items(id),
+                FOREIGN KEY (product_id)
+                    REFERENCES products(id)
+            )
+        """)
+
+        
         # Insert sample products only if empty
         count = conn.execute(
             "SELECT COUNT(*) FROM products"
