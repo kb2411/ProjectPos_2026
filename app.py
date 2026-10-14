@@ -2,56 +2,96 @@
 import tkinter as tk
 from tkinter import ttk
 
+from database import initialize_database, get_all_products
+
 
 def main():
-    # Create the main application window
+    # Initialize SQLite database
+    initialize_database()
+
+    # Create main window
     root = tk.Tk()
     root.title("ProjectPos_2026 - POS System")
-    root.geometry("900x560")
+    root.geometry("900x600")
 
-    # Main content area
-    main_frame = ttk.Frame(root, padding=30)
+    main_frame = ttk.Frame(root, padding=25)
     main_frame.pack(fill="both", expand=True)
 
-    # Title
+    # Application title
     title_label = ttk.Label(
         main_frame,
         text="Supermarket POS System",
         font=("Arial", 22, "bold")
     )
-    title_label.pack(pady=30)
+    title_label.pack(pady=(10, 15))
 
-    # Subtitle
-    subtitle_label = ttk.Label(
-        main_frame,
-        text="Software Engineering Practice Assignment",
-        font=("Arial", 12)
-    )
-    subtitle_label.pack(pady=10)
+    # Main function buttons
+    button_frame = ttk.Frame(main_frame)
+    button_frame.pack(pady=10)
 
-    # Sale button (not implemented yet)
-    sale_button = ttk.Button(
-        main_frame,
+    ttk.Button(
+        button_frame,
         text="Process Sale",
         state="disabled"
-    )
-    sale_button.pack(pady=20, ipadx=30, ipady=10)
+    ).pack(side="left", padx=10)
 
-    # Return button (not implemented yet)
-    return_button = ttk.Button(
-        main_frame,
+    ttk.Button(
+        button_frame,
         text="Handle Returns",
         state="disabled"
-    )
-    return_button.pack(pady=10, ipadx=30, ipady=10)
+    ).pack(side="left", padx=10)
 
-    # Status
+    # Product catalog
+    catalog_label = ttk.Label(
+        main_frame,
+        text="Product Catalog",
+        font=("Arial", 16, "bold")
+    )
+    catalog_label.pack(pady=(25, 10))
+
+    columns = ("id", "name", "price", "stock")
+
+    product_table = ttk.Treeview(
+        main_frame,
+        columns=columns,
+        show="headings",
+        height=10
+    )
+
+    product_table.heading("id", text="Product ID")
+    product_table.heading("name", text="Product Name")
+    product_table.heading("price", text="Unit Price")
+    product_table.heading("stock", text="Stock")
+
+    product_table.column("id", width=100, anchor="center")
+    product_table.column("name", width=220, anchor="center")
+    product_table.column("price", width=120, anchor="center")
+    product_table.column("stock", width=100, anchor="center")
+
+    product_table.pack(fill="both", expand=True)
+
+    # Load products from database
+    products = get_all_products()
+
+    for product_id, name, price_cents, stock in products:
+        product_table.insert(
+            "",
+            "end",
+            values=(
+                product_id,
+                name,
+                f"¥{price_cents / 100:.2f}",
+                stock
+            )
+        )
+
+    # Status bar
     status_label = ttk.Label(
         main_frame,
-        text="System Initialization Completed",
+        text=f"Loaded {len(products)} products successfully.",
         font=("Arial", 10)
     )
-    status_label.pack(pady=30)
+    status_label.pack(pady=15)
 
     root.mainloop()
 
